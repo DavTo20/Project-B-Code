@@ -18,7 +18,7 @@ public class PlayerController : MonoBehaviour
     public float standingHeight = 2f;
     public float crouchHeight = 1f;
     public Vector3 standingCenter = new Vector3(0, 1f, 0);
-    public Vector3 crouchCenter = new Vector3(0,  1f, 0);
+    public Vector3 crouchCenter = new Vector3(0, 0.5f, 0);
 
     private float jumpHoldTime = 0f;
     private bool jumpHeld = false;
@@ -50,6 +50,8 @@ public class PlayerController : MonoBehaviour
     private PlayerLedgeClimb ledgeClimb;
     public bool IsClimbing { get; set; }
 
+    private PlayerSlide slide;
+
     private void Awake()
     {
         controller = GetComponent<CharacterController>();
@@ -61,6 +63,7 @@ public class PlayerController : MonoBehaviour
         playerCamera = new PlayerCamera(cameraTransform, this);
         jump = new PlayerJump(controller, this, ledgeClimb);
         crouch = new PlayerCrouch(controller, this);
+        slide = new PlayerSlide(controller, this);
     }
 
     private void OnEnable()
@@ -86,7 +89,17 @@ public class PlayerController : MonoBehaviour
         inputActions.Player.Sprint.started += ctx => isSprinting = true;
         inputActions.Player.Sprint.canceled += ctx => isSprinting = false;
 
-        inputActions.Player.Crouch.started += ctx => crouch.SetCrouching(true);
+        inputActions.Player.Crouch.started += ctx =>
+            {
+                if (IsSprinting() && IsGrounded(out _))
+                {
+                    slide.StartSlide();
+                }
+                else
+                {
+                    crouch.SetCrouching(true);
+                }
+            };
         inputActions.Player.Crouch.canceled += ctx => crouch.SetCrouching(false);
     }
 
@@ -143,6 +156,7 @@ public class PlayerController : MonoBehaviour
         }
 
 
+        slide.Update();
         crouch.Update();
 
         lookInput = Vector2.zero;

@@ -10,7 +10,7 @@ public class PlayerCrouch
 
     private bool crouchHeld = false;
     private bool targetCrouchState;
-    private float transitionSpeed = 8f;
+    private float transitionSpeed = 16^f;
 
     private float standingCameraY;
     private float crouchingCameraY;
